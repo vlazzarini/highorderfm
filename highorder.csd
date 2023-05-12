@@ -4,7 +4,6 @@
 </CsOptions>
 <CsInstruments>
 
-sr=882000
 0dbfs = 1
 nchnls = 2
 

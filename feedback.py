@@ -8,7 +8,7 @@ def fft(x):
   return 20*np.log10(s+0.000001)
 
 cs = ctcsound.Csound()
-cs.compile_(['','highorder.csd','--ksmps=1'])
+cs.compile_(['','highorder.csd','--ksmps=1','-r16000000'])
 cs.readScore('''
 i5 0 1 0.5 500
 i6 0 1 0.5 500
