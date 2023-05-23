@@ -3,15 +3,15 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 def fft(x):
-  x /= abs(max(x)) 
-  s = abs(np.fft.rfft(x)/x.size)
-  return 20*np.log10(s+0.000001)
+  s = abs(np.fft.rfft(x))/(x.size/2)
+  s[0] *= 0.5 # correct DC due to (N/2) scaling
+  return s
 
 cs = ctcsound.Csound()
-cs.compile_(['','highorder.csd','--ksmps=1','-r16000000'])
+cs.compile_(['','highorder.csd','--ksmps=1', '-r10000000'])
 cs.readScore('''
-i5 0 1 0.5 500
-i6 0 1 0.5 500
+i5 0 1 1 500
+i6 0 1 1 500
 ''')
 sr = cs.sr()
 chan = cs.nchnls()
@@ -47,16 +47,16 @@ axs[0,1].set_ylabel('amplitude')
 axs[0,0].set_ylabel('amplitude')
 
 
-axs[1,0].set_ylim(-60,0)
-axs[1,1].set_ylim(-60,0)
+axs[1,0].set_ylim(0,1.1)
+axs[1,1].set_ylim(0,1.1)
 axs[1,1].set_xlim(-1,20)
 axs[1,0].set_xlim(-1,20)
 
 axs[1,1].set_xlabel('frequency (KHz)')
 axs[1,0].set_xlabel('frequency (KHz)')
 
-axs[1,1].set_ylabel('magnitude (dB)')
-axs[1,0].set_ylabel('magnitude (dB)')
+axs[1,1].set_ylabel('magnitude')
+axs[1,0].set_ylabel('magnitude')
 
 axs[0,0].set_title('FM')
 axs[0,1].set_title('PM')
@@ -65,5 +65,5 @@ for i in (0,1):
   for j in (0,1):
       axs[i,j].grid()
 plt.tight_layout()
-plt.savefig("fm-pm.png")
+plt.savefig("feedback-sp.png")
 plt.show()

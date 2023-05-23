@@ -15,14 +15,15 @@ class Op {
   int lomask; 
   S lofac; 
   S fs;  
-  S fac; 
+  S fac;
+  S fdb;
   unsigned int phs;
   
-  S process(S amp, int si) {
+  S process(int si) {
    S frac = (phs & lomask)*lofac; 
    unsigned int ndx = phs >> lobits; 
-   S s = amp*(tab[ndx] + frac*(tab[ndx+1] 
-   			- tab[ndx])); 
+   S s = tab[ndx] + frac*(tab[ndx+1] 
+   			- tab[ndx]); 
    phs += si; 
    return s;
   }
@@ -31,7 +32,7 @@ class Op {
   Op(const std::vector<S> &table, float sr, 
        std::size_t vsize) :
     tab(table), out(vsize), mod(vsize), lobits(0), fs(sr), 
-    fac(maxlen/sr), phs(0) {
+    fac(maxlen/sr), fdb(0), phs(0) {
     for(unsigned long t = tab.size()-1; 
       (t & maxlen) == 0; t <<= 1)
       lobits += 1;
@@ -41,27 +42,30 @@ class Op {
 
   unsigned int vsize() { return out.size(); }
   S sr() { return fs; }
+  const S *data() { return out.data(); }
   
   const std::vector<S> &operator()() { return mod; }
 
-  const std::vector<S> &operator() (S amp, S fr) {
-    int si = (unsigned int) (fr*fac);
+  const std::vector<S> &operator() (S a, S fr, S g = 0) {
     std::size_t n = 0;
-    for(auto &s : out) {
-      s = process(amp, si);
-      mod[n++] = s*fr;
+    for(auto &o : out) {
+      S f = fr+fdb*g;
+      S s = process((int)(f*fac));
+      mod[n++] = (fdb = s*f)*a;
+      o = a*s;
     }
     return out;
   }
 
-  const std::vector<S> &operator() (S amp, S fr,
-  			const std::vector<S> &fm) {
+  const std::vector<S> &operator() (S a, S fr,
+                                    const std::vector<S> &fm,
+                                    S g = 0) {
     std::size_t n = 0;
-    S f;
-    for(auto &s : out) {
-      f = fr + fm[n];
-      s = process(amp, (int) (f*fac));
-      mod[n++] = s*f;
+    for(auto &o : out) {
+      S f = fr+fm[n]+fdb*g;
+      S s = process((int)(f*fac));
+      mod[n++] = (fdb = s*f)*a;
+      o = a*s;
     }
     return out;
   }
@@ -91,11 +95,14 @@ public:
      returns signal vector size
   */
   unsigned int vsize() { return car.vsize(); }
-
+ 
   /**
      returns sampling rate
   */
   S fs() { return car.sr();}
+
+
+  const S *data() { return car.data(); }
 
   /**
      audio synthesis method
@@ -129,27 +136,34 @@ int main(int argc, const char* argv[]) {
     auto fr = std::atof(argv[3]);
     std::vector<float> tab(1025);
     std::vector<float> out(def_vsize);
-    SRC_DATA cvt;
-    cvt.src_ratio = 1./ovs;
-    cvt.input_frames = def_vsize*ovs;
-    cvt.output_frames = def_vsize;
-
-    cvt.data_out = out.data();
-
     std::size_t n = 0;
+    int err;
+    SRC_STATE* stat = src_new (SRC_SINC_FASTEST,1,&err);
+    SRC_DATA cvt;
+
+
     for(auto &s : tab)
       s = std::cos(twopi/(tab.size()-1)*n++);
-    StackedFM<float> fm(tab,sr*ovs,cvt.input_frames);
-    
-    for(n = 0; n < fm.fs()*dur; n += fm.vsize()) {
-      auto sig = fm(amp,fr,fr,fr,3,2);
-      cvt.data_in = sig.data();
-      src_simple(&cvt,SRC_SINC_FASTEST,1); 
+    StackedFM<float> fm(tab,sr*ovs,def_vsize*ovs);
+
+    cvt.src_ratio = 1./ovs;
+    cvt.input_frames = fm.vsize();
+    cvt.output_frames = def_vsize;
+    cvt.data_out = out.data();
+    cvt.data_in = fm.data();
+
+    for(std::size_t n = 0; n < fm.fs()*dur;
+        n += fm.vsize()) {
+      fm(amp,fr,fr,fr,3,2);
+      src_process(stat, &cvt);
       for(auto s : out)
         std::cout << s << std::endl;
     }
+    src_delete (stat) ;
   } else
     std::cout << "usage: " << argv[0] <<
-      " dur(s) amp freq(Hz) [sr] [osr]" << std::endl;
+      " dur(s) amp freq(Hz) [sr] [ovs]" << std::endl;
+
+
   return 0;
 }

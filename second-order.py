@@ -4,14 +4,15 @@ import matplotlib.pyplot as plt
 
 def fft(x):
   x /= abs(max(x)) 
-  s = abs(np.fft.rfft(x)/x.size)
+  s = abs(np.fft.rfft(x)/(x.size/2))
+  s[0] *= 0.5
   return 20*np.log10(s+0.000001)
 
 cs = ctcsound.Csound()
 cs.compile_(['','highorder.csd','-r882000'])
 cs.readScore('''
-i1 0 1 0.5 500
-i2 0 1 0.5 500
+i1 0 1 1 500
+i2 0 1 1 500
 ''')
 sr = cs.sr()
 chan = cs.nchnls()
