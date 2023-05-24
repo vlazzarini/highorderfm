@@ -50,7 +50,7 @@ class Op {
     std::size_t n = 0;
     for(auto &o : out) {
       S f = fr+fdb*g;
-      S s = process((int)(f*fac));
+      S s = process(f);
       mod[n++] = (fdb = s*f)*a;
       o = a*s;
     }
@@ -63,7 +63,7 @@ class Op {
     std::size_t n = 0;
     for(auto &o : out) {
       S f = fr+fm[n]+fdb*g;
-      S s = process((int)(f*fac));
+      S s = process(f);
       mod[n++] = (fdb = s*f)*a;
       o = a*s;
     }
