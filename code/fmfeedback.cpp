@@ -66,70 +66,22 @@ public:
   }
 };
 
-/**
-   Stacked FM template class
-   takes sample type
-*/
-class StackedFM {
-  std::vector<double> table;
-  Op<float> mod0; 
-  Op<float> mod1;
-  Op<float> car;
-  std::vector<float> out;
-  std::size_t ovs;
-  SRC_STATE* stat;
-  SRC_DATA cvt;
-  
-public:
-  StackedFM(unsigned int fs,std::size_t os,
-            std::size_t vsize = def_vsize) :
-    table(1025),mod0(table,fs*os,vsize*os),
-    mod1(table,fs*os,vsize*os),
-    car(table,fs*os,vsize*os),
-    out(vsize),ovs(os){
-    int err;
-    stat = src_new (SRC_SINC_FASTEST,1,&err);
-    cvt.src_ratio = 1./ovs;
-    cvt.input_frames = vsize*ovs;
-    cvt.data_in = car.data();
-    cvt.output_frames = vsize;
-    cvt.data_out = out.data();
-    cvt.end_of_input = 0;
-    std::size_t n = 0;
-    for(auto &s : table)
-      s = std::cos(twopi/(table.size()-1)*n++);
-  };
-
-  ~StackedFM(){src_delete(stat);}
-
-  unsigned int vsize(){return out.size();}
-  unsigned int fs(){return car.sr()/ovs;}
-  const float *data() {return out.data();}
-
-  const std::vector<float> &operator()(float a,float fc,
-                                       float fm0,float fm1,
-				       float z0,float z1){
-    mod0(z0,fm0);
-    mod1(z1,fm1,mod0());
-    car(a,fc,mod1());
-    src_process(stat, &cvt);
-    return out;
-  }
-};
-
-
 
 int main(int argc, const char* argv[]) {
   if(argc > 3) {
-    int ovs = argc>5?std::atoi(argv[5]):8;
     int sr = argc>4?std::atoi(argv[4]):def_sr;
     auto dur = std::atof(argv[1]);
     auto amp = std::atof(argv[2]);
     auto fr = std::atof(argv[3]);
-    StackedFM fm(sr,ovs);
-    for(std::size_t n = 0; n < fm.fs()*dur;
+    std::vector<double> table(1025);
+    std::size_t n = 0;
+    for(auto &s : table)
+      s = std::cos(twopi/(table.size()-1)*n++);
+    
+    Op<float> fm(table,sr,ovs);
+    for(std::size_t n = 0; n < fm.sr()*dur;
         n += fm.vsize()) {
-      auto &sig = fm(amp,fr,fr,fr,3,2);
+      auto &sig = fm(amp,fr,1);
       for(auto s : sig)
         std::cout << s << std::endl;
     }
