@@ -20,11 +20,12 @@ class Op {
   unsigned int lobits;
   unsigned int fac;
   unsigned int lomask;
+  double nfac;
   
   double lookup(S f){
     unsigned int ndx = phs >> lobits; 
-    auto s = tab[ndx] + (phs & lomask)*(tab[ndx+1]
-                                        - tab[ndx])/(lomask + 1); 
+    auto s = tab[ndx] +
+      nfac*(phs & lomask)*(tab[ndx+1] - tab[ndx]); 
     phs += (int)(f*fac); 
     return s;
   }
@@ -49,6 +50,7 @@ public:
     for(unsigned long t = tab.size()-1; 
         (t & maxlen) == 0; t <<= 1) lobits += 1;
     lomask = (1 << lobits) - 1;
+    nfac = 1./(lomask + 1);
   }
 
   unsigned int vsize(){return out.size();}
