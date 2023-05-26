@@ -26,7 +26,7 @@ end = chan*round(sr/50)
 freqs = np.arange(0,buffer.size/4+1)
 time = np.arange(0,end//chan)/(sr)
 
-fig,axs = plt.subplots(1,2,figsize=[8,3])
+fig,axs = plt.subplots(1,2,figsize=[8,3.5])
 
 axs[0].plot(time*1000, buffer[0:end:chan], 'k')
 axs[1].plot(time*1000,buffer[1:end+1:chan], 'k') 

@@ -3,13 +3,13 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 def fft(x):
-  x /= abs(max(x)) 
   s = abs(np.fft.rfft(x)/(x.size/2))
-  s[0] *= 0.5
+  s[0] *= 0.5 # DC has a factor of 2 in rfft()
+  s *= 1/max(s)
   return 20*np.log10(s+0.000001)
 
 cs = ctcsound.Csound()
-cs.compile_(['','highorder.csd','-r882000'])
+cs.compile_(['','highorder.csd','-r5000000'])
 cs.readScore('''
 i1 0 1 1 500
 i2 0 1 1 500
@@ -47,8 +47,8 @@ axs[0,1].set_ylabel('amplitude')
 axs[0,0].set_ylabel('amplitude')
 
 
-axs[1,0].set_ylim(-60,0)
-axs[1,1].set_ylim(-60,0)
+axs[1,0].set_ylim(-90,0)
+axs[1,1].set_ylim(-90,0)
 axs[1,1].set_xlim(-1,20)
 axs[1,0].set_xlim(-1,20)
 

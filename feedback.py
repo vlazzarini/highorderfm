@@ -4,7 +4,7 @@ import matplotlib.pyplot as plt
 
 def fft(x):
   s = abs(np.fft.rfft(x))/(x.size/2)
-  s[0] *= 0.5 # correct DC due to (N/2) scaling
+  s[0] *= 0.5 # correct DC due to (N/2) scaling (rfft() has a DC factor of 2)
   return s
 
 cs = ctcsound.Csound()
