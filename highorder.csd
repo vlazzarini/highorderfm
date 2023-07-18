@@ -60,11 +60,7 @@ ifm0 = ifm1
 // level 1 FM
 aphm0 phasor ifm0
 aphm1 phasor ifm1
-aphs phasor ifc + 
-            indx1*(ifm1 +       
-            indx0*ifm0*cos(2*$M_PI*aphm0))*
-            cos(2*$M_PI*aphm1 +     
-                indx0*sin(2*$M_PI*aphm0))
+aphs phasor ifc + indx1*(ifm1 + indx0*ifm0*cos(2*$M_PI*aphm0))*cos(2*$M_PI*aphm1 +    indx0*sin(2*$M_PI*aphm0))
 a3 = cos(2*$M_PI*aphs) 
   outch 1, a3*iamp 
 endin
@@ -140,6 +136,8 @@ f0 1
 
 
 
+
+
 <bsbPanel>
  <label>Widgets</label>
  <objectName/>
@@ -154,7 +152,7 @@ f0 1
   <g>255</g>
   <b>255</b>
  </bgcolor>
- <bsbObject version="2" type="BSBScope">
+ <bsbObject type="BSBScope" version="2">
   <objectName/>
   <x>39</x>
   <y>31</y>
@@ -174,7 +172,7 @@ f0 1
   <mode>0.00000000</mode>
   <triggermode>NoTrigger</triggermode>
  </bsbObject>
- <bsbObject version="2" type="BSBScope">
+ <bsbObject type="BSBScope" version="2">
   <objectName/>
   <x>42</x>
   <y>321</y>
